@@ -17,21 +17,21 @@ public class Cache {
 	private CacheEntry[] theCache;
 	
 	//1 word = 4 bytes
-	public Cache(int words, int entries, int latency) {
-		this.entries = entries;
-		this.latency = latency;
+	public Cache(int entries, int latency) {
+		this.entries = entries; //number of cache entries 
+		this.latency = latency; //latency when reaching for latency.
 		
 		theCache = new CacheEntry[entries];//cache block
-		
 		hit = 0;
 		miss = 0;
 		
-		number_of_offset_bits = (int) (Math.log(Runner.getCacheLineSize()) / Math
+		number_of_offset_bits = (int) (Math.log(Runner.getCacheLineSize()) / Math //gets the offset bits
 				.log(2));
-		number_of_sets = entries / Runner.getNumberOfWays();
-		number_of_index_bits = (int) (Math.log(number_of_sets) / Math.log(2));
-		index_mask = ((1 << number_of_index_bits) - 1);
+		number_of_sets = entries / Runner.getNumberOfWays(); //gets the number of sets
+		number_of_index_bits = (int) (Math.log(number_of_sets) / Math.log(2)); //number of index bits
+		index_mask = ((1 << number_of_index_bits) - 1); //index masks
 	}
+	
 	
 	public void addEntry(CacheEntry entry, int real_index)
 	{

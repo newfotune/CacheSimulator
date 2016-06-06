@@ -1,16 +1,16 @@
 package finals;
+
 import java.awt.BorderLayout;
-import java.awt.GridLayout;
-import java.awt.ScrollPane;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Scanner;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JMenuBar;
-import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JTextArea;
@@ -20,50 +20,34 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 public class Runner extends JFrame {
-	private static final String MY_CSV_FILES[] = { "trace-2k.csv", "trace-5k.csv" };
-	private static final String MY_CONFIG_FILE = "config.txt";
+
+	private static int L1_SIZE_INDEX = 0;
+	private static int L2_SIZE_INDEX = 1;
+	private static int L3_SIZE_INDEX = 2;
+	private static int LM1_SIZE_INDEX = 3;
+	private static int LM2_SIZE_INDEX = 4;
+	private static int L1_LAT_INDEX = 5;
+	private static int L2_LAT_INDEX = 6;
+	private static int L3_LAT_INDEX = 7;
+	private static int LM1_LAT_INDEX = 8;
+	private static int LM2_READ_LAT_INDEX = 9;
+	private static int LM2_WRITE_LAT_INDEX = 10;
+	private static int ASSOCIATIVITY_INDEX = 11;
+	private static int CACHE_LINE_SIZE_INDEX = 12;
+	private static int FILE_INDEX = 13;
+	
+	
+	private int[] mySettings;
+	private JSpinner[] mySpinners;
 	private File myCSVFileInput;
-	private File myConfigFile;
-
-	private JSpinner mySelectInputFileSpinner;
-	private JSpinner myL1SizeSpinner;
-	private JSpinner myL2SizeSpinner;
-	private JSpinner myL3SizeSpinner;
-	private JSpinner myLM1SizeSpinner;
-	private JSpinner myLM2SizeSpinner;
-
-	private JSpinner myL1LatencySpinner;
-	private JSpinner myL2LatencySpinner;
-	private JSpinner myL3LatencySpinner;
-	private JSpinner myLM1LatencySpinner;
-	private JSpinner myLM2ReadLatencySpinner;
-	private JSpinner myLM2WriteLatencySpinner;
-	private JSpinner myAssociativitySpinner;
-	private JSpinner myCacheLineSizeSpinner;
-
+	private int myTotalLatency;
 	private JButton myEnterBTN;
 	private JToolBar mySpinnerToolBar;
 	private JTextArea myTextArea;
-
-	private String mySelectedFileName;
-	private int myL1Size;
-	private int myL2Size;
-	private int myL3Size;
-	private int myLM1Size;
-	private int myLM2Size;
-
-	private int myL1Latency;
-	private int myL2Latency;
-	private int myL3Latency;
-	private int myLM1Latency;
-	private int myLM2ReadLatency;
-	private int myLM2WriteLatency;
-	private int myAssociativity;
-	private int myCacheLineSize;
-	private int myTotalLatency;
 	
-	/*public static int CACHE_LINE_SIZE = 32;
-	public static int NUMBER_OF_WAYS = 1;*/
+	private CPU cpu1 = ceateCpu1();
+	private CPU cpu2 = ceateCpu1();
+	
 
 	/**
 	 * Initializes the variables
@@ -71,121 +55,123 @@ public class Runner extends JFrame {
 	public Runner() {
 		buildComponents();
 		initializeVariables();
+		
+		
 		attachListenersToToolBarComponents();
 		buildFrame();
 
 	}
 
 	private void attachListenersToToolBarComponents() {
-		mySelectInputFileSpinner.addChangeListener(new ChangeListener() {
+		mySpinners[FILE_INDEX].addChangeListener(new ChangeListener() {
 
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				mySelectedFileName = (String) mySelectInputFileSpinner.getValue();
+				myCSVFileInput = new File((String) mySpinners[FILE_INDEX].getValue());
 
 			}
 		});
-		myL1SizeSpinner.addChangeListener(new ChangeListener() {
+		mySpinners[L1_SIZE_INDEX].addChangeListener(new ChangeListener() {
 
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				myL1Size = Integer.parseInt((String) myL1SizeSpinner.getValue());
+				mySettings[L1_SIZE_INDEX] = Integer.parseInt((String) mySpinners[L1_SIZE_INDEX].getValue());
 
 			}
 		});
-		myL2SizeSpinner.addChangeListener(new ChangeListener() {
+		mySpinners[L2_SIZE_INDEX].addChangeListener(new ChangeListener() {
 
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				myL2Size = Integer.parseInt((String) myL2SizeSpinner.getValue());
+				mySettings[L2_SIZE_INDEX] = Integer.parseInt((String) mySpinners[L2_SIZE_INDEX].getValue());
 
 			}
 		});
-		myL3SizeSpinner.addChangeListener(new ChangeListener() {
+		mySpinners[L3_SIZE_INDEX].addChangeListener(new ChangeListener() {
 
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				myL3Size = Integer.parseInt((String) myL3SizeSpinner.getValue());
+				mySettings[L3_SIZE_INDEX] = Integer.parseInt((String) mySpinners[L3_SIZE_INDEX].getValue());
 
 			}
 		});
-		myLM1SizeSpinner.addChangeListener(new ChangeListener() {
+		mySpinners[LM1_SIZE_INDEX].addChangeListener(new ChangeListener() {
 
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				myLM1Size = Integer.parseInt((String) myLM1SizeSpinner.getValue());
+				mySettings[LM1_SIZE_INDEX] = Integer.parseInt((String) mySpinners[LM1_SIZE_INDEX].getValue());
 
 			}
 		});
-		myLM2SizeSpinner.addChangeListener(new ChangeListener() {
+		mySpinners[LM2_SIZE_INDEX].addChangeListener(new ChangeListener() {
 
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				myLM2Size = Integer.parseInt((String) myLM2SizeSpinner.getValue());
+				mySettings[LM2_SIZE_INDEX] = Integer.parseInt((String) mySpinners[LM2_SIZE_INDEX].getValue());
 
 			}
 		});
-		myL1LatencySpinner.addChangeListener(new ChangeListener() {
+		mySpinners[L1_LAT_INDEX].addChangeListener(new ChangeListener() {
 
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				myL1Latency = Integer.parseInt((String) myL1LatencySpinner.getValue());
+				mySettings[L1_LAT_INDEX] = Integer.parseInt((String) mySpinners[L1_LAT_INDEX].getValue());
 
 			}
 		});
-		myL2LatencySpinner.addChangeListener(new ChangeListener() {
+		mySpinners[L1_LAT_INDEX].addChangeListener(new ChangeListener() {
 
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				myL2Latency = Integer.parseInt((String) myL2LatencySpinner.getValue());
+				mySettings[L1_LAT_INDEX] = Integer.parseInt((String) mySpinners[L1_LAT_INDEX].getValue());
 
 			}
 		});
-		myL3LatencySpinner.addChangeListener(new ChangeListener() {
+		mySpinners[L3_LAT_INDEX].addChangeListener(new ChangeListener() {
 
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				myL3Latency = Integer.parseInt((String) myL3LatencySpinner.getValue());
+				mySettings[L3_LAT_INDEX] = Integer.parseInt((String) mySpinners[L3_LAT_INDEX].getValue());
 
 			}
 		});
-		myLM1LatencySpinner.addChangeListener(new ChangeListener() {
+		mySpinners[LM1_LAT_INDEX].addChangeListener(new ChangeListener() {
 
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				myLM1Latency = Integer.parseInt((String) myLM1LatencySpinner.getValue());
+				mySettings[LM1_LAT_INDEX] = Integer.parseInt((String) mySpinners[LM1_LAT_INDEX].getValue());
 
 			}
 		});
-		myLM2ReadLatencySpinner.addChangeListener(new ChangeListener() {
+		mySpinners[LM2_READ_LAT_INDEX].addChangeListener(new ChangeListener() {
 
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				myLM2ReadLatency = Integer.parseInt((String) myLM2ReadLatencySpinner.getValue());
+				mySettings[LM2_READ_LAT_INDEX] = Integer.parseInt((String) mySpinners[LM2_READ_LAT_INDEX].getValue());
 
 			}
 		});
-		myLM2WriteLatencySpinner.addChangeListener(new ChangeListener() {
+		mySpinners[LM2_WRITE_LAT_INDEX].addChangeListener(new ChangeListener() {
 
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				myLM2WriteLatency = Integer.parseInt((String) myLM2WriteLatencySpinner.getValue());
+				mySettings[LM2_WRITE_LAT_INDEX] = Integer.parseInt((String) mySpinners[LM2_WRITE_LAT_INDEX].getValue());
 
 			}
 		});
-		myAssociativitySpinner.addChangeListener(new ChangeListener() {
+		mySpinners[ASSOCIATIVITY_INDEX].addChangeListener(new ChangeListener() {
 
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				myAssociativity = Integer.parseInt((String) myAssociativitySpinner.getValue());
+				mySettings[ASSOCIATIVITY_INDEX] = Integer.parseInt((String) mySpinners[ASSOCIATIVITY_INDEX].getValue());
 
 			}
 		});
-		myCacheLineSizeSpinner.addChangeListener(new ChangeListener() {
+		mySpinners[CACHE_LINE_SIZE_INDEX].addChangeListener(new ChangeListener() {
 
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				myCacheLineSize = Integer.parseInt((String) myCacheLineSizeSpinner.getValue());
+				mySettings[CACHE_LINE_SIZE_INDEX] = Integer.parseInt((String) mySpinners[CACHE_LINE_SIZE_INDEX].getValue());
 
 			}
 		});
@@ -202,33 +188,33 @@ public class Runner extends JFrame {
 
 	private void buildFrame() {
 		mySpinnerToolBar.add(new JLabel("Select Input File"));
-		mySpinnerToolBar.add(mySelectInputFileSpinner);
+		mySpinnerToolBar.add(mySpinners[FILE_INDEX]);
 		mySpinnerToolBar.add(new JLabel("Select L1 Size"));
-		mySpinnerToolBar.add(myL1SizeSpinner);
+		mySpinnerToolBar.add(mySpinners[L1_SIZE_INDEX]);
 		mySpinnerToolBar.add(new JLabel("Select L2 Size"));
-		mySpinnerToolBar.add(myL2SizeSpinner);
+		mySpinnerToolBar.add(mySpinners[L2_SIZE_INDEX]);
 		mySpinnerToolBar.add(new JLabel("Select L3 Size"));
-		mySpinnerToolBar.add(myL3SizeSpinner);
+		mySpinnerToolBar.add(mySpinners[L3_SIZE_INDEX]);
 		mySpinnerToolBar.add(new JLabel("Select LM1 Size"));
-		mySpinnerToolBar.add(myLM1SizeSpinner);
+		mySpinnerToolBar.add(mySpinners[LM1_SIZE_INDEX]);
 		mySpinnerToolBar.add(new JLabel("Select LM2 Size"));
-		mySpinnerToolBar.add(myLM2SizeSpinner);
+		mySpinnerToolBar.add(mySpinners[LM2_SIZE_INDEX]);
 		mySpinnerToolBar.add(new JLabel("Select L1 Latency"));
-		mySpinnerToolBar.add(myL1LatencySpinner);
+		mySpinnerToolBar.add(mySpinners[L1_LAT_INDEX]);
 		mySpinnerToolBar.add(new JLabel("Select L2 Latency"));
-		mySpinnerToolBar.add(myL2LatencySpinner);
+		mySpinnerToolBar.add(mySpinners[L2_LAT_INDEX]);
 		mySpinnerToolBar.add(new JLabel("Select L3 Latency"));
-		mySpinnerToolBar.add(myL3LatencySpinner);
+		mySpinnerToolBar.add(mySpinners[L3_LAT_INDEX]);
 		mySpinnerToolBar.add(new JLabel("Select LM1 Latency"));
-		mySpinnerToolBar.add(myLM1LatencySpinner);
+		mySpinnerToolBar.add(mySpinners[LM1_LAT_INDEX]);
 		mySpinnerToolBar.add(new JLabel("Select LM2 Read Latency"));
-		mySpinnerToolBar.add(myLM2ReadLatencySpinner);
+		mySpinnerToolBar.add(mySpinners[LM2_READ_LAT_INDEX]);
 		mySpinnerToolBar.add(new JLabel("Select LM2 Write Latency"));
-		mySpinnerToolBar.add(myLM2WriteLatencySpinner);
+		mySpinnerToolBar.add(mySpinners[LM2_WRITE_LAT_INDEX]);
 		mySpinnerToolBar.add(new JLabel("Select N-Way Associativity"));
-		mySpinnerToolBar.add(myAssociativitySpinner);
+		mySpinnerToolBar.add(mySpinners[ASSOCIATIVITY_INDEX]);
 		mySpinnerToolBar.add(new JLabel("Select Cache Line Size"));
-		mySpinnerToolBar.add(myCacheLineSizeSpinner);
+		mySpinnerToolBar.add(mySpinners[CACHE_LINE_SIZE_INDEX]);
 
 		mySpinnerToolBar.add(myEnterBTN);
 		this.setTitle("Cache Coherent Simulator");
@@ -239,69 +225,110 @@ public class Runner extends JFrame {
 	}
 
 	private void initializeVariables() {
-		myL1Size = Integer.parseInt((String) myL1SizeSpinner.getValue());
-		myL2Size = Integer.parseInt((String) myL2SizeSpinner.getValue());
-		myL3Size = Integer.parseInt((String) myL3SizeSpinner.getValue());
-		myLM1Size = Integer.parseInt((String) myLM1SizeSpinner.getValue());
-		myLM2Size = Integer.parseInt((String) myLM2SizeSpinner.getValue());
-		myL1Latency = Integer.parseInt((String) myL1LatencySpinner.getValue());
-		myL2Latency = Integer.parseInt((String) myL2LatencySpinner.getValue());
-		myL3Latency = Integer.parseInt((String) myL3LatencySpinner.getValue());
-		myLM1Latency = Integer.parseInt((String) myLM1LatencySpinner.getValue());
-		myLM2ReadLatency = Integer.parseInt((String) myLM2ReadLatencySpinner.getValue());
-		myLM2WriteLatency = Integer.parseInt((String) myLM2WriteLatencySpinner.getValue());
-		myAssociativity = Integer.parseInt((String) myAssociativitySpinner.getValue());
-		myCacheLineSize = Integer.parseInt((String) myCacheLineSizeSpinner.getValue());
-		mySelectedFileName = (String) mySelectInputFileSpinner.getValue();
+		mySettings[L1_SIZE_INDEX] = Integer.parseInt((String) mySpinners[L1_SIZE_INDEX].getValue());
+		mySettings[L2_SIZE_INDEX] = Integer.parseInt((String) mySpinners[L2_SIZE_INDEX].getValue());
+		mySettings[L3_SIZE_INDEX] = Integer.parseInt((String) mySpinners[L3_SIZE_INDEX].getValue());
+		mySettings[LM1_SIZE_INDEX] = Integer.parseInt((String) mySpinners[LM1_SIZE_INDEX].getValue());
+		mySettings[LM2_SIZE_INDEX] = Integer.parseInt((String) mySpinners[LM2_SIZE_INDEX].getValue());
+		mySettings[L1_LAT_INDEX] = Integer.parseInt((String) mySpinners[L1_LAT_INDEX].getValue());
+		mySettings[L2_LAT_INDEX] = Integer.parseInt((String) mySpinners[L2_LAT_INDEX].getValue());
+		mySettings[L3_LAT_INDEX] = Integer.parseInt((String) mySpinners[L3_LAT_INDEX].getValue());
+		mySettings[LM1_LAT_INDEX] = Integer.parseInt((String) mySpinners[LM1_LAT_INDEX].getValue());
+		mySettings[LM2_READ_LAT_INDEX] = Integer.parseInt((String) mySpinners[LM2_READ_LAT_INDEX].getValue());
+		mySettings[LM2_WRITE_LAT_INDEX] = Integer.parseInt((String) mySpinners[LM2_WRITE_LAT_INDEX].getValue());
+		mySettings[ASSOCIATIVITY_INDEX] = Integer.parseInt((String) mySpinners[ASSOCIATIVITY_INDEX].getValue());
+		mySettings[CACHE_LINE_SIZE_INDEX] = Integer.parseInt((String) mySpinners[CACHE_LINE_SIZE_INDEX].getValue());
+		myCSVFileInput = new File((String) mySpinners[FILE_INDEX].getValue());
 		myTotalLatency = 0;
 	}
 
 	private void buildComponents() {
+		mySettings = new int[14];
+		mySpinners = new JSpinner[14];
 		myTextArea = new JTextArea(20, 50);
-		myTextArea.setEditable(false); //Uneditable text Area
+		myTextArea.setEditable(false); //make the text Area nonn editable
+		
 		mySpinnerToolBar = new JToolBar(JToolBar.VERTICAL);
 		myEnterBTN = new JButton("Run Simulator");
 		String[] values1 = { "32", "128" };
-		myL1SizeSpinner = new JSpinner(new SpinnerListModel(values1));
+		mySpinners[L1_SIZE_INDEX] = new JSpinner(new SpinnerListModel(values1));
 		String[] values2 = { "512", "1024" };
-		myL2SizeSpinner = new JSpinner(new SpinnerListModel(values2));
+		mySpinners[L2_SIZE_INDEX] = new JSpinner(new SpinnerListModel(values2));
 		String[] values3 = { "2048", "4096" };
-		myL3SizeSpinner = new JSpinner(new SpinnerListModel(values3));
+		mySpinners[L3_SIZE_INDEX] = new JSpinner(new SpinnerListModel(values3));
 		String[] values4 = { "16", "32" };
-		myLM1SizeSpinner = new JSpinner(new SpinnerListModel(values4));
+		mySpinners[LM1_SIZE_INDEX] = new JSpinner(new SpinnerListModel(values4));
 		String[] values5 = { "1024", "2048" };// KB
-		myLM2SizeSpinner = new JSpinner(new SpinnerListModel(values5));
+		mySpinners[LM2_SIZE_INDEX] = new JSpinner(new SpinnerListModel(values5));
 		String[] values6 = { "1", "2" };
-		myL1LatencySpinner = new JSpinner(new SpinnerListModel(values6));
+		mySpinners[L1_LAT_INDEX] = new JSpinner(new SpinnerListModel(values6));
 		String[] values7 = { "10", "12" };
-		myL2LatencySpinner = new JSpinner(new SpinnerListModel(values7));
+		mySpinners[L2_LAT_INDEX] = new JSpinner(new SpinnerListModel(values7));
 		String[] values8 = { "35", "40" };
-		myL3LatencySpinner = new JSpinner(new SpinnerListModel(values8));
+		mySpinners[L3_LAT_INDEX] = new JSpinner(new SpinnerListModel(values8));
 		String[] values9 = { "100" };
-		myLM1LatencySpinner = new JSpinner(new SpinnerListModel(values9));
+		mySpinners[LM1_LAT_INDEX] = new JSpinner(new SpinnerListModel(values9));
 		String[] values10 = { "250" };
-		myLM2ReadLatencySpinner = new JSpinner(new SpinnerListModel(values10));
+		mySpinners[LM2_READ_LAT_INDEX] = new JSpinner(new SpinnerListModel(values10));
 		String[] values11 = { "400" };
-		myLM2WriteLatencySpinner = new JSpinner(new SpinnerListModel(values11));
+		mySpinners[LM2_WRITE_LAT_INDEX] = new JSpinner(new SpinnerListModel(values11));
 		String[] values12 = { "1", "2", "4", "8", "16" };
-		myAssociativitySpinner = new JSpinner(new SpinnerListModel(values12));
+		mySpinners[ASSOCIATIVITY_INDEX] = new JSpinner(new SpinnerListModel(values12));
 		String[] values13 = { "trace-2k.csv", "trace-5k.csv" };
-		mySelectInputFileSpinner = new JSpinner(new SpinnerListModel(values13));
+		mySpinners[FILE_INDEX] = new JSpinner(new SpinnerListModel(values13));
 		String[] values14 = { "16", "64" };
-		myCacheLineSizeSpinner = new JSpinner(new SpinnerListModel(values14));
+		mySpinners[CACHE_LINE_SIZE_INDEX] = new JSpinner(new SpinnerListModel(values14));
 	}
 
-	public static int getCacheLineSize() {
+	public void start() {
+		ArrayList<String[]> list = new ArrayList<String[]>();		
+		Scanner scanner;
+		try {
+			scanner = new Scanner(myCSVFileInput);
+			while (scanner.hasNextLine()) {
+
+				list.add(scanner.nextLine().split(","));
+				
+			}
+			scanner.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		CPU current = cpu1;
+		CPU other = cpu2;
+		
+		for(int i = 0; i < list.size(); i++)
+		{
+			if (i % 50 == 0) {
+				//cputemp = currentcpu;
+				//cpucurrent = oldCPU;
+				//oldCPU = cputemp;
+			}
+			for(int cpu1Counter = 0; cpu1Counter < 100; cpu1Counter++ )
+			{
+				
+			}
+			for(int cpu2Counter = 0; cpu2Counter < 100; cpu2Counter++)
+			{
+				
+			}
+		}	
+	}
+	
+	private CPU ceateCpu1() {
+		Cache L1I = new Cache(mySettings[0],mySettings[L1_LAT_INDEX]);
+		Cache L1D = new Cache(mySettings[0],mySettings[L1_LAT_INDEX]);
+		
+		Cache L2 = new Cache(mySettings[1],mySettings[L2_LAT_INDEX]);
+		CPU theCPU = new CPU (L1I, L1D, L2);
+		
+		return theCPU;
+	}
+	public static double getCacheLineSize() {
 		return 32;
 	}
 	public static int getNumberOfWays() {
 		return 1;
-	}
-	
-	public void start() {
-		Cache L1DCache = new Cache(4, 32, 1); //4 word, 32 entries, 1ns latency
-		Cache L1ICache = new Cache(4, 32, 1); //4 word, 32 entries, 1ns latency
-		
-		
 	}
 }
